@@ -1,9 +1,37 @@
 import torch
 import torchvision.transforms as transforms
-from rnn import RNN
 from django.db import models
 import ssl
 from PIL import Image
+import sys
+import torch
+import torch.nn as nn
+
+class RNN(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers, num_classes):
+        super(RNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, num_classes)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def forwardOLD(self, x):
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
+
+        out, _ = self.rnn(x, h0.reshape(self.num_layers, x.size(0), self.hidden_size))
+        out = self.fc(out[:, -1, :])
+
+        return out
+
+    def forward(self, x):
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
+
+        out, _ = self.rnn(x.unsqueeze(1), h0)
+        out = self.fc(out[:, -1, :])
+
+        return out
+
 
 
 class Classifier(models.Model):
@@ -22,6 +50,7 @@ class Classifier(models.Model):
     num_classes=2
     image_size = 150
     input_size = image_size * image_size * 3
+    classes = ["Clear", "Not clear"]
     try:
       # SSL certificate necessary so we can download weights of the InceptionResNetV2 model
       ssl._create_default_https_context = ssl._create_unverified_context
@@ -34,18 +63,23 @@ class Classifier(models.Model):
               std=[0.229, 0.224, 0.225]
           )
       ])
-      img = Image.open(self.image)
-      img_array = transformer(img)
+
+
+      img = Image.open( self.image )
+
+      img = transformer(img)
+
+      img = img.view(-1, input_size)
       
       # loading the model
-      PATH = "rnn_not_clear_vs_clear.model"
+      PATH = "C:/Users/hanna/Desktop/git/ML-demo/backend/classifier/rnn_not_clear_vs_clear.model"
       net = RNN(input_size, hidden_size, num_layers, num_classes).to(device)
-      net.load_state_dict(torch.load(PATH))
+      net.load_state_dict(torch.load(PATH, map_location=torch.device('cpu')))
       net.to(device)
       net.eval()
-      outputs = net(img_array)
+      outputs = net(img)
       _, predicted = torch.max(outputs.data, 1)
-      self.result = str(predicted)
+      self.result = str(classes[int(predicted[0])])
       print('Success')
     except Exception as e:
       print('Classification failed:', e)
