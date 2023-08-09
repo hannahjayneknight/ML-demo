@@ -12,7 +12,7 @@ const Home = () => {
     <>
       <Head>
         <title>
-          Home | Image Classification
+          Dirty car classification
         </title>
       </Head>
       <Hero />

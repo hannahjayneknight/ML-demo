@@ -50,7 +50,7 @@ class Classifier(models.Model):
     num_classes=2
     image_size = 150
     input_size = image_size * image_size * 3
-    classes = ["Clear", "Not clear"]
+    classes = ["Clean", "Damaged"]
     try:
       # SSL certificate necessary so we can download weights of the InceptionResNetV2 model
       ssl._create_default_https_context = ssl._create_unverified_context

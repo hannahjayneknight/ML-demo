@@ -87,7 +87,7 @@ const Classifier = () => {
     <>
       <Head>
         <title>
-          Image Classifier | Image Classification
+          Dirty car classification
         </title>
       </Head>
       <Box 
