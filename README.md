@@ -50,6 +50,7 @@ source venv/bin/activate
 On Windows:
 
 ```bash
+Set-ExecutionPolicy Unrestricted -Scope Process
 venv\scripts\activate
 ```
 
